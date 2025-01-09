@@ -23,12 +23,16 @@ const App = () => {
 
   const [selected, setSelected] = useState(0)
   const [vote, setVote] = useState(Array(anecdotes.length).fill(0))
-
   const handleSelected = (max, min) =>{
-    const rand = Math.floor(Math.random() * (max-min)) + min
+    let rand = 0
+    while (true){
+      rand = Math.floor(Math.random() * (max-min)) + min
+      if (rand !== selected) break;
+    }
     console.log(rand)
     setSelected(rand)
   }
+
   const n = anecdotes.length
   const handleClickVote = ()=>{
     const voteArr = [...vote]
@@ -38,7 +42,7 @@ const App = () => {
   }
 
   const voteLargest = vote.indexOf(Math.max(...vote))
-
+  
   return (
     <div>
       <h2>Anecdote of the day</h2>
