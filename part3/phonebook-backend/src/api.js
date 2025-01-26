@@ -4,8 +4,11 @@ const morgan = require('morgan')
 const cors = require('cors')
 const serverless = require('serverless-http')
 
+
 const app = express()
+
 const router = express.Router()
+
 
 app.use(cors())
 // Or, allow only a specific origin like your frontend (http://localhost:5173):
@@ -46,7 +49,7 @@ app.use(morgan(":method :url :status :res[content-length] - :response-time ms :b
 // morgan("tiny", {stream: (request, res)=>{return res.statusCode}})
 // morgan(':method :url :status :res[content-length] - :response-time ms')
 
-router.get('/',(request, response)=>response.send("<h1>Hello World</h1>"))
+// router.get('/',(request, response)=>response.send("<h1>Hello World</h1>"))
 
 router.get('/persons', (request, response)=>{
     response.json(persons)
@@ -102,7 +105,11 @@ router.post('/persons', (request, response)=>{
   
 // app.use(unknownEndpoint)
 
-app.use('/.netlify/functions/api', router)
+app.use('/api/', router)
+
+app.use(express.static('dist'))
+
+
 module.exports.handler = serverless(app)
 
 // const PORT = 3001
