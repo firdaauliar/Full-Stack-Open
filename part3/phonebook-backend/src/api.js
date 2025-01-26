@@ -105,7 +105,7 @@ router.post('/persons', (request, response)=>{
   
 // app.use(unknownEndpoint)
 
-app.use('/api/', router)
+app.use('/.netlify/functions/api/', router)
 
 app.use(express.static('dist'))
 
