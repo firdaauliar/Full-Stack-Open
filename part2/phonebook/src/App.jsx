@@ -85,6 +85,9 @@ function App() {
           setNewNumber('')
           setTimeout(()=>{setNotifMessage(null)},3000)
         })
+        .catch(error=>{
+          setNotifMessage(error)
+        })
       
       
     }
@@ -98,6 +101,9 @@ function App() {
         .deleteById(id)
         .then(deletedPerson=>{
           setPersons(persons.filter(p=>p.id !== deletedPerson.id))
+          console.log(persons.filter(p=>p.id !== deletedPerson.id))
+          console.log(deletedPerson)
+          console.log(persons)
       })}
   }
 

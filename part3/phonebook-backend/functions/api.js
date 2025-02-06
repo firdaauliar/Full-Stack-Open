@@ -75,27 +75,30 @@ router.get('/persons/:id',(request, response)=>{
         }
     })
     .catch(error =>{
-        console.log(error)
-        response.status(400).send({error: 'malformatted id'})
+        console.log(error.name)
+        next(error)
     })
 })
 
-// router.delete('/persons/:id', (request, response)=>{
-//     const id = request.params.id
-//     persons = persons.filter(person=>person.id !== id)
-
-//     response.status(204).end()
-// })
+router.delete('/persons/:id', (request, response, next)=>{
+    Person.findByIdAndDelete(request.params.id)
+        .then(result=>{
+            console.log(result)
+            response.json(result)
+            response.status(200)
+            // response.status(204).end()
+        })
+        .catch(error=>next(error))
+})
 
 router.post('/persons', (request, response)=>{
     const body = request.body
     // if(!body.name || !body.number){
-    if(body.name === undefined){
-        return response.status(400).json({
-            error:"name or number is missing"
-        })
-    }
-    // else if(persons.find(person=>person.name === body.name)){
+    //     return response.status(400).json({
+    //         error:"name or number is missing"
+    //     })
+    // }
+    // else if(Person.find({name: body.name})){
     //     return response.status(409).json({
     //         error: "name must be unique"
     //     })
@@ -106,18 +109,49 @@ router.post('/persons', (request, response)=>{
         number: body.number
     })
 
-    person.save().then(savedPerson => {
-        response.json(savedPerson)
-    })
+    person.save()
+        .then(savedPerson => {
+            response.json(savedPerson)
+        })
+        .catch(error=>next(error))
 })
 
-// const unknownEndpoint = (request, response) => {
-//     response.status(404).send({ error: 'unknown endpoint' })
-//   }
-  
-// app.use(unknownEndpoint)
+router.put('/persons/:id', (request, response, next)=>{
+    const body = request.body
+    
+    const person = {
+        name: body.name,
+        number: body.number
+    }
+    Person.findByIdAndUpdate(request.params.id, person, {new: true})
+        .then(updatedPerson =>{
+            response.json(updatedPerson)
+        })
+        .catch(error=>next(error))
+})
+
 
 app.use('/.netlify/functions/api/', router)
+
+const unknownEndpoint = (request, response) => {
+    response.status(404).send({ error: 'unknown endpoint' })
+  }
+  
+app.use(unknownEndpoint)
+
+const errorHandler = (error, request, response, next)=>{
+    console.log(error.message)
+
+    if(error.name === 'CastError'){
+        return response.status(400).send({error: 'malformatted id'})
+    }else if(error.name === 'ValidationError'){
+        return response.status(400).json({error: error.message})
+    }
+
+    next(error)
+}
+
+app.use(errorHandler)
 
 
 
