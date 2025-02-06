@@ -51,3 +51,13 @@
   border-radius: 5px;
   margin-bottom: 20px;
 }
+
+.errorClass {
+  color: red;
+  background: lightgrey;
+  font-size: 20px;
+  padding: 10px;
+  border: 2px solid red;
+  border-radius: 5px;
+  margin-bottom: 20px;
+}

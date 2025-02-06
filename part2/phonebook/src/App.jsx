@@ -7,13 +7,20 @@ import { useEffect } from 'react'
 import servicesPerson from './services/persons'
 
 
-const Notification = ({ message }) =>{
-  if(message === null){
+const Notification = (props) =>{
+  if(props.message === null && props.error === null){
     return null
+  }
+  else if(props.error){
+    return(
+      <div className='errorClass'>
+        {props.error}
+      </div>
+    )
   }
   return (
     <div className='notif'>
-      {message}
+      {props.message}
     </div>
   )
 }
@@ -26,6 +33,7 @@ function App() {
   const [search, setSearch] = useState('')
   const [personSearch, setPersonSearch] = useState([])
   const [notifMessage, setNotifMessage] = useState(null)
+  const [errorMessage, setErrorMessage] = useState(null)
 
   useEffect(()=>{
     // console.log('effect')
@@ -68,7 +76,7 @@ function App() {
             setNewNumber('')
             setTimeout(()=>{setNotifMessage(null)},3000)
           }).catch(error=>{
-            setNotifMessage(`Information of ${newName} has already been removed from the server`)
+            setErrorMessage(`Information of ${newName} has already been removed from the server`)
             setPersons(persons.filter(p=>p.id !== personId))
             setNewName('')
             setNewNumber('')
@@ -86,7 +94,11 @@ function App() {
           setTimeout(()=>{setNotifMessage(null)},3000)
         })
         .catch(error=>{
-          setNotifMessage(error)
+          console.log(error.response.data.error)
+          setErrorMessage(error.response.data.error)
+          setNewName('')
+          setNewNumber('')
+          setTimeout(()=>{setErrorMessage(null)},3000)
         })
       
       
@@ -110,7 +122,7 @@ function App() {
   return(
     <div>
       <h2>Phonebook</h2>
-      <Notification message={notifMessage}/>
+      <Notification message={notifMessage} error={errorMessage}/>
       <Filter search={search} handleChangeSearch={handleChangeSearch} />
       <h2>add a new</h2>
       <PersonForm addPersons={addPersons} newName={newName} newNumber={newNumber} handleChangeName={handleChangeName} handleChangeNumber={handleChangeNumber} />

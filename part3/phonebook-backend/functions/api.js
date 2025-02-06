@@ -91,7 +91,7 @@ router.delete('/persons/:id', (request, response, next)=>{
         .catch(error=>next(error))
 })
 
-router.post('/persons', (request, response)=>{
+router.post('/persons', (request, response, next)=>{
     const body = request.body
     // if(!body.name || !body.number){
     //     return response.status(400).json({
