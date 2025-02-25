@@ -1,0 +1,9 @@
+PUT http://localhost:3003/api/blogs/67b281ba132e78761e1f7763
+Content-Type: application/json
+
+{   "title": "join with user",
+    "author": "konstant",
+    "url": "thisisurl.com",
+    "likes": 14,
+    "userId": "67b42f07c4e443f35fa4b2aa"
+}
