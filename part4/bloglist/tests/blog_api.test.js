@@ -27,39 +27,58 @@ const initialBlogs = [
     author: "Edsger W. Dijkstra",
     url: "http://www.cs.utexas.edu/~EWD/transcriptions/EWD08xx/EWD808.html",
     likes: 12,
-  },
-  {
-    title: "First class tests",
-    author: "Robert C. Martin",
-    url: "http://blog.cleancoder.com/uncle-bob/2017/05/05/TestDefinitions.htmll",
-    likes: 10,
   }
 ]
 
+const users = [{
+  username: "root",
+  password: "sekret"
+}]
 beforeEach(async ()=>{
     await Blog.deleteMany({})
+    await User.deleteMany({})
 
-    const blogsObj = initialBlogs.map(blog => new Blog(blog))
-    const promiseArray = blogsObj.map(blog => blog.save())
-    await Promise.all(promiseArray)
+  
+    for(let user of users ){
+      let passwordHash = await bcrypt.hash(user.password, 10)
+      let userObj = new User({username: user.username, passwordHash})
+      await userObj.save()
+      let login = await helper.loginOneUser(user.username, user.password)
+      let userId = login.user._id
+      for(let blog of initialBlogs){
+        blog.user = userId
+        let blogObj = new Blog(blog)
+        blogObj.save()
+      }
+
+    }
+    // const blogsObj = initialBlogs.map(blog => new Blog(blog))
+    // const promiseArray = blogsObj.map(blog => blog.save())
+    // await Promise.all(promiseArray)
 })
 
 
 
 test.only('blogs are returned as json', async () => {
+  const login = await helper.loginOneUser(users[0].username, users[0].password)
     await api
         .get('/api/blogs')
+        .set('Authorization', `Bearer ${login.token}`)
         .expect(200)
         .expect('Content-Type', /application\/json/)
 })
-test.only('there are two blogs', async()=>{
-    const response = await api.get('/api/blogs')
+test.only('there are three blogs', async()=>{
+  const login = await helper.loginOneUser(users[0].username, users[0].password)
+
+    const response = await api.get('/api/blogs').set('Authorization', `Bearer ${login.token}`)
     
     assert.strictEqual(response.body.length, initialBlogs.length)
 })
 
 test.only('the first blog title is about react', async ()=>{
-    const response = await api.get('/api/blogs')
+  const login = await helper.loginOneUser(users[0].username, users[0].password)
+
+    const response = await api.get('/api/blogs').set('Authorization', `Bearer ${login.token}`)
 
     const titles = response.body.map(blog=>blog.title)
 
@@ -67,6 +86,8 @@ test.only('the first blog title is about react', async ()=>{
 })
 
 test('a new blog is added to database', async ()=>{
+  const login = await helper.loginOneUser(users[0].username, users[0].password)
+
   const newBlog = {
     title: "this is a test to add new blog using async await",
     author: "Fauliarahma",
@@ -76,11 +97,12 @@ test('a new blog is added to database', async ()=>{
 
   await api
     .post('/api/blogs')
+    .set('Authorization', `Bearer ${login.token}`)
     .send(newBlog)
     .expect(201)
     .expect('Content-Type', /application\/json/)
 
-  const response = await api.get('/api/blogs')
+  const response = await api.get('/api/blogs').set('Authorization', `Bearer ${login.token}`)
 
   const titles = response.body.map(blog => blog.title)
 
@@ -90,8 +112,10 @@ test('a new blog is added to database', async ()=>{
 })
 
 test('the unique id in json response is named id', async ()=>{
+  const login = await helper.loginOneUser(users[0].username, users[0].password)
   const dbResponse = await Blog.find({})
-  const jsonResponse = await api.get('/api/blogs/')
+
+  const jsonResponse = await api.get('/api/blogs/').set('Authorization', `Bearer ${login.token}`)
   const jsonBody = jsonResponse.body.map(b=>b)
   const idxToFind = dbResponse.map(blog => blog._id.toString())
 
@@ -101,6 +125,8 @@ test('the unique id in json response is named id', async ()=>{
 })
 
 test('if likes is not defined equal zero', async () => {
+  const login = await helper.loginOneUser(users[0].username, users[0].password)
+
   const newBlog = {
     title: "test likes default",
     author: "Fauliarahma",
@@ -110,11 +136,12 @@ test('if likes is not defined equal zero', async () => {
 
   await api
     .post('/api/blogs')
+    .set('Authorization', `Bearer ${login.token}`)
     .send(newBlog)
     .expect(201)
     .expect('Content-Type', /application\/json/)
 
-  const response = await api.get('/api/blogs')
+  const response = await api.get('/api/blogs').set('Authorization', `Bearer ${login.token}`)
   const blog = response.body.map(blog => blog)
   
   // console.log(blog[blog.length-1])
@@ -125,36 +152,43 @@ test('if url or and title is not defined then 400 bad request', async ()=>{
   const newBlog = {
     author: "Fauliarahma",
   }
+  const login = await helper.loginOneUser(users[0].username, users[0].password)
 
   await api
     .post('/api/blogs')
+    .set('Authorization', `Bearer ${login.token}`)
     .send(newBlog)
     .expect(400)
 
 })
 
 test('a specific blogs can be retrieved', async ()=>{
-  const blogsAtStart = await api.get('/api/blogs/')
+  const login = await helper.loginOneUser(users[0].username, users[0].password)
+
+  const blogsAtStart = await api.get('/api/blogs/').set('Authorization', `Bearer ${login.token}`)
 
   const blogToGet = blogsAtStart.body[1]
 
   const result = await api
     .get(`/api/blogs/${blogToGet.id}`)
+    .set('Authorization', `Bearer ${login.token}`)
     .expect(200)
     .expect('Content-Type', /application\/json/)
-
   assert.deepStrictEqual(result.body, blogToGet)
 })
 
 test('to delete a blog post', async ()=>{
-  const response = await api.get('/api/blogs')
+  const login = await helper.loginOneUser(users[0].username, users[0].password)
+
+  const response = await api.get('/api/blogs').set('Authorization', `Bearer ${login.token}`)
   const idDelete =response.body[0].id 
 
   await api
     .delete(`/api/blogs/${idDelete}`)
+    .set('Authorization', `Bearer ${login.token}`)
     .expect(204)
 
-  const updatedBlogs = await api.get('/api/blogs')
+  const updatedBlogs = await api.get('/api/blogs').set('Authorization', `Bearer ${login.token}`)
   const idUpdatedBlogs = updatedBlogs.body.map(blog=>blog.id)
   assert(!idUpdatedBlogs.includes(idDelete))
   
@@ -162,7 +196,9 @@ test('to delete a blog post', async ()=>{
 })
 
 test('to update the likes in the blog post', async()=>{
-  const response = await api.get('/api/blogs')
+  const login = await helper.loginOneUser(users[0].username, users[0].password)
+
+  const response = await api.get('/api/blogs').set('Authorization', `Bearer ${login.token}`)
   const idUpdate = response.body[0].id
 
   const updatedBlog = {
@@ -172,22 +208,27 @@ test('to update the likes in the blog post', async()=>{
     likes: 10,
   }
 
-  const updatedRes = await api.put(`/api/blogs/${idUpdate}`).send(updatedBlog)
+  const updatedRes = await api
+                            .put(`/api/blogs/${idUpdate}`)
+                            .send(updatedBlog)
+                            .set('Authorization', `Bearer ${login.token}`)
   // console.log(updatedRes.body)
   assert.strictEqual(updatedRes.body.likes, 10)
 
 })
 
 describe('join user and blogs', () => {
-  beforeEach(async()=>{
-    await User.deleteMany({})
+  // beforeEach(async()=>{
+  //   await User.deleteMany({})
 
-    const passwordHash = await bcrypt.hash('sekret', 10)
-    const user = new User({username:'root', passwordHash})
+  //   const passwordHash = await bcrypt.hash('sekret', 10)
+  //   const user = new User({username:'root', passwordHash})
 
-    await user.save()
-  })
+  //   await user.save()
+  // })
   test('post blog with user id', async ()=>{
+    const login = await helper.loginOneUser(users[0].username, users[0].password)
+
     const userAtStart = await helper.usersInDb()
     const userId = userAtStart[0].id
 
@@ -201,6 +242,7 @@ describe('join user and blogs', () => {
 
     const result = await api
                           .post('/api/blogs')
+                          .set('Authorization', `Bearer ${login.token}`)
                           .send(newBlog)
                           .expect(201)
                           .expect('Content-Type', /application\/json/)

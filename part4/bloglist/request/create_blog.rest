@@ -1,6 +1,6 @@
 POST http://localhost:3003/api/blogs 
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InVzZXJuYW1lMSIsImlkIjoiNjdiNTIyMzg0MmQ2OGU0MzRhZjM1MjQwIiwiaWF0IjoxNzQwNDcxMTE3LCJleHAiOjE3NDA0NzQ3MTd9.e-JNhBUNuKfLLgt-d52yOxoaRNF1XzpTHvUgNKUR1A8
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InVzZXJuYW1lMiIsImlkIjoiNjdiZDdkMDc5ZjY0MzljYTNlYThjYmY3IiwiaWF0IjoxNzQwNTIxODIyLCJleHAiOjE3NDA1MjU0MjJ9.SqZaJNoV1q4o_lC37FKmVLtLxxCxM0WJ-rJX3j-dCQs
 
 {
     "title": "tokenRefactor works",

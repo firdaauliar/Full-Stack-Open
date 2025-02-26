@@ -18,7 +18,7 @@ blogRouter.get('/', async (request, response, next) => {
 blogRouter.get('/:id', async (request, response, next)=>{
     
     try{
-        const blog = await Blog.findById(request.params.id)
+        const blog = await Blog.findById(request.params.id).populate('user', {username: 1, name: 1})
         if(blog){
             response.json(blog)
         }else{
@@ -61,15 +61,15 @@ blogRouter.post('/', async (request, response, next)=>{
 blogRouter.delete('/:id', async (request, response, next) => {
     
     try{
-        const decodedToken = jwt.verify(request.token, process.env.SECRET)
-        if(!decodedToken.id){
-            return response.status(401).json({error: 'token invalid'})
-        }
+        // const decodedToken = jwt.verify(request.token, process.env.SECRET)
+        // if(!decodedToken.id){
+        //     return response.status(401).json({error: 'token invalid'})
+        // }
         const blog = await Blog.findById(request.params.id)
+        const user = request.user
         if(blog.user){
-            if(blog.user.toString() === decodedToken.id.toString()){
+            if(blog.user.toString() === user.id.toString()){
                 const result = await Blog.findByIdAndDelete(request.params.id)
-                const user = await User.findById(blog.user)
                 user.blogs.pull(request.params.id)
                 await user.save()
             }

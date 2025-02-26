@@ -1,5 +1,7 @@
 const Blog = require('../models/blog')
 const User = require('../models/user')
+const jwt = require('jsonwebtoken')
+const bcrypt = require('bcryptjs')
 
 const initialBlogs = [
     {
@@ -61,10 +63,42 @@ const usersInDb = async () => {
     return users.map(user=>user.toJSON())
 }
 
+const loginOneUser = async (username, password) => {
+
+  const user = await User.findOne({username})
+  const isPasswordTrue = user === null ? false : await bcrypt.compare(password, user.passwordHash)
+
+  if(!(user && isPasswordTrue)){
+    return response.status(401).json({
+        error: 'invalid username or password'
+    })
+  }
+
+  const userForToken = {
+    username: user.username,
+    id: user._id
+  }
+
+  const token = jwt.sign(userForToken, process.env.SECRET)
+  
+  return {
+    token, user
+  }
+}
+
+const registerUser = async()=>{
+  const user = {
+    username: "root",
+    password: "sekret"
+  }
+
+
+}
 module.exports = {
     initialBlogs,
     initialUser,
     nonExistingId,
     blogsInDb,
-    usersInDb
+    usersInDb,
+    loginOneUser
 }
